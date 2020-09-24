@@ -1,0 +1,9 @@
+server:
+ port: 18770
+
+hazelcastClient:
+ systemInterface:
+  imdgInterface:
+   imdgManager:
+    host:
+     addresses: 127.0.0.1
