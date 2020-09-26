@@ -1,12 +1,6 @@
 package com.example.demo.systemInterface.imdgInterface.service.impl;
 
-import java.io.BufferedReader;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
@@ -15,6 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import com.example.demo.systemInterface.imdgInterface.service.InMemoryManager;
@@ -45,14 +40,21 @@ public class InMemoryWatcherImpl implements InMemoryWatcher {
     
     private final Integer retryLimit = 3;
     
+    private Boolean checkStartFlag;
+    
+    private Boolean checkStopFlag;
+    
     @PostConstruct
     public void init() {
     	//
     	logger.info("[InMemoryWatcher].init : InMemoryWatcher initialization starts.");
     	
+    	checkStartFlag = false;
+    	checkStopFlag = false;
+    	
     	while (true) {
     		logger.info("[InMemoryWatcher].init : hazelcast server try to stop before start.");
-    		//stop();
+    		stop();	// TODO : not working
 	    	
 	    	try {
 				Thread.sleep(10000);
@@ -111,20 +113,30 @@ public class InMemoryWatcherImpl implements InMemoryWatcher {
 	@Override
 	public void start() {
 		//
+		// by flag
+		checkStartFlag = true;
+
+		// by direct call
+		/*
 		stop();
-		
 		try {
 			Thread.sleep(10000);
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
-		
 		startImdg();
+		//*/
 	}
 
 	@Override
 	public void stop() {
 		//
+		// by flag
+		// TODO : not working 
+		checkStopFlag = true;
+		
+		// by direct call
+		/*
 		for (int i = 0 ; i < 3 ; i++) {
 			stopImdg();
 			
@@ -134,6 +146,7 @@ public class InMemoryWatcherImpl implements InMemoryWatcher {
 				e.printStackTrace();
 			}
 		}
+		//*/
 	}
 	
 	@Override
@@ -145,6 +158,7 @@ public class InMemoryWatcherImpl implements InMemoryWatcher {
     
     private void startImdg() {
     	//
+    	// by calling bat
     	//String[] command = {"cmd", "/c", "C:\\workspace\\Sample Codes\\Hazelcast\\Server\\hazelcast-3.12.9\\bin\\start.bat"};
     	String[] command = {"cmd", "/c", batchStart};
 		try {
@@ -156,7 +170,19 @@ public class InMemoryWatcherImpl implements InMemoryWatcher {
     
 	private void stopImdg() {
 		//
-		//ProcessBuilder builder = new ProcessBuilder("cmd.exe", "/C", "netstat -n -o -a -p | findstr :5701");
+		// by calling bat
+		//String[] command = {"cmd", "/c", "C:\\workspace\\Sample Codes\\Hazelcast\\Server\\hazelcast-3.12.9\\bin\\stop.bat"};
+		String[] command = {"cmd", "/c", batchStop};
+		try {
+			Process process = Runtime.getRuntime().exec(command);
+			process.waitFor();
+		} catch (IOException | InterruptedException e) {
+			e.printStackTrace();
+		}
+		
+		// by caling netstat then get pid and taskkill
+		/*
+		// ex : ProcessBuilder builder = new ProcessBuilder("cmd.exe", "/C", "netstat -n -o -a | findstr 0.0.0.0:5701");
 		ProcessBuilder builder = new ProcessBuilder("cmd.exe", "/C", "netstat -n -o -a | findstr 0.0.0.0:" + serverPort.toString() + " | findstr LISTENING");
 		
 	    Process process;
@@ -180,14 +206,20 @@ public class InMemoryWatcherImpl implements InMemoryWatcher {
 		} catch (IOException | InterruptedException e) {
 			logger.info("[InMemoryWatcher].stopImdg : error = " + e);
 		}
-		
-		//String[] command = {"cmd", "/c", "C:\\workspace\\Sample Codes\\Hazelcast\\Server\\hazelcast-3.12.9\\bin\\stop.bat"};
-//		String[] command = {"cmd", "/c", batchStop};
-//		try {
-//			Process process = Runtime.getRuntime().exec(command);
-//			process.waitFor();
-//		} catch (IOException | InterruptedException e) {
-//			e.printStackTrace();
-//		}
+		//*/
 	}
+	
+	@Scheduled(fixedDelay=1000, initialDelay=10000)
+	private void checkConnection() {
+		//
+    	if (checkStartFlag) {
+    		startImdg();
+    		checkStartFlag = false;
+    	}
+    	
+    	if (checkStopFlag) {
+    		stopImdg();
+    		checkStopFlag = false;
+    	}
+    }
 }
