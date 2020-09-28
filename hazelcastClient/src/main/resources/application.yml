@@ -6,4 +6,5 @@ hazelcastClient:
   imdgInterface:
    imdgManager:
     host:
-     addresses: 127.0.0.1
+     #addresses: 127.0.0.1
+     addresses: 192.168.1.42

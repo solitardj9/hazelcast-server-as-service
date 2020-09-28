@@ -17,6 +17,7 @@ import com.hazelcast.client.config.ClientConnectionStrategyConfig;
 import com.hazelcast.client.config.ClientConnectionStrategyConfig.ReconnectMode;
 import com.hazelcast.client.config.ClientNetworkConfig;
 import com.hazelcast.core.HazelcastInstance;
+import com.hazelcast.core.IMap;
 import com.hazelcast.core.LifecycleEvent;
 import com.hazelcast.core.LifecycleEvent.LifecycleState;
 import com.hazelcast.core.LifecycleListener;
@@ -149,4 +150,16 @@ public class InMemoryManagerImpl implements InMemoryManager, LifecycleListener {
     	
     	logCount++;
     }
+
+	@Override
+	public IMap<Object, Object> addMap(String mapName) {
+		//
+		return instance.getMap(mapName);
+	}
+
+	@Override
+	public IMap<Object, Object> getMap(String mapName) {
+		//
+		return instance.getMap(mapName);
+	}
 }

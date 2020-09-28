@@ -1,1 +1,1 @@
-# hazelcast-watcher
+# hazelcast-server-as-service
